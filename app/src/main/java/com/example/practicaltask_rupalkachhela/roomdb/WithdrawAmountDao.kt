@@ -15,7 +15,6 @@ interface WithdrawAmountDao {
     @Query("SELECT SUM(amount) AS total FROM withdraw_amount")
     fun getTotalWithdrawAmount():Int
 
-
     @Query("SELECT * FROM withdraw_amount ORDER BY id DESC LIMIT 5;")
     fun getTransactionList(): List<WithdrawAmount>
 }

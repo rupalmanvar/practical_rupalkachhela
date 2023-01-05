@@ -89,7 +89,7 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
             viewModel!!.insertWithDrawAmount(WithdrawAmount(amount = viewModel!!.amount))
             withContext(Dispatchers.Main) {
                 totalBalance()
-                showWithdrawAmountDetail(viewModel!!.amount.toInt(), true)
+                updateLastTranslation(viewModel!!.amount.toInt(), true)
                 binding.inputAmount.editText?.text?.clear()
             }
         }
@@ -117,12 +117,17 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
     }
 
     private fun insertNotes() {
-
-        val note2000 = Notes("2000", 25)
+//
+//        val note2000 = Notes("2000", 25)
+//        val note500 = Notes("500", 25)
+//        val note100 = Notes("100", 25)
+//        val note20 = Notes("20", 25)
+//        val note10 = Notes("10", 25)
+        val note2000 = Notes("2000", 23)
         val note500 = Notes("500", 25)
-        val note100 = Notes("100", 25)
-        val note20 = Notes("20", 25)
-        val note10 = Notes("10", 25)
+        val note100 = Notes("100", 50)
+        val note20 = Notes("20", 100)
+        val note10 = Notes("10", 21)
 
         CoroutineScope(Dispatchers.IO).launch {
             viewModel!!.insertNotes(note2000)
@@ -150,7 +155,7 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
 
     fun showWithdrawAmountDetail(amount: Int, updateNotes: Boolean = false) {
         val amg = calculationForAvailableNotes(amount, updateNotes)
-        val builder: java.lang.StringBuilder = StringBuilder()
+        val builder: StringBuilder = StringBuilder()
         builder.append("Withdraw amount detail : $amount \n\n")
         for ((index, value) in amg.withIndex()) {
             if (value.numberOfNotes != 0) {
@@ -163,6 +168,28 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
     }
 
 
+
+    private fun updateLastTranslation(amount: Int, updateNotes: Boolean = false) {
+        val amg = calculationForAvailableNotes(amount, updateNotes)
+        val builder: java.lang.StringBuilder = StringBuilder()
+        builder.append("Last Transaction : $amount \n\n")
+
+        for ((index, value) in amg.withIndex()) {
+//            val t = value.numberOfNotes * value.note.toInt()
+//            builder.append("${value.note} * ${value.numberOfNotes} = $t \n")
+
+            if (value.numberOfNotes != 0) {
+                val t = value.numberOfNotes * value.note.toInt()
+                builder.append("${value.note} * ${value.numberOfNotes} = $t \n")
+
+            }
+
+
+        }
+
+        binding.txtTrasnsactionHistory.text = builder.toString()
+
+    }
     private fun calculationForAvailableNotes(
         amount: Int, updateNotes: Boolean = false
     ): ArrayList<Notes> {
