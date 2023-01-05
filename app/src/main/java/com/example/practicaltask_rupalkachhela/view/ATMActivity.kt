@@ -29,6 +29,7 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        supportActionBar!!.title = "ATM Application"
         totalBalance()
         insertNotes()
         setClickEvents()
@@ -89,7 +90,7 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
             viewModel!!.insertWithDrawAmount(WithdrawAmount(amount = viewModel!!.amount))
             withContext(Dispatchers.Main) {
                 totalBalance()
-                updateLastTranslation(viewModel!!.amount.toInt(), true)
+                showWithdrawAmountDetail(viewModel!!.amount.toInt(), true)
                 binding.inputAmount.editText?.text?.clear()
             }
         }
@@ -117,24 +118,21 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
     }
 
     private fun insertNotes() {
-//
-//        val note2000 = Notes("2000", 25)
-//        val note500 = Notes("500", 25)
-//        val note100 = Notes("100", 25)
-//        val note20 = Notes("20", 25)
-//        val note10 = Notes("10", 25)
-        val note2000 = Notes("2000", 23)
-        val note500 = Notes("500", 25)
-        val note100 = Notes("100", 50)
-        val note20 = Notes("20", 100)
-        val note10 = Notes("10", 21)
+        if (viewModel!!.getAllNotes().isEmpty()) {
 
-        CoroutineScope(Dispatchers.IO).launch {
-            viewModel!!.insertNotes(note2000)
-            viewModel!!.insertNotes(note500)
-            viewModel!!.insertNotes(note100)
-            viewModel!!.insertNotes(note20)
-            viewModel!!.insertNotes(note10)
+            val note2000 = Notes("2000", 25)
+            val note500 = Notes("500", 25)
+            val note100 = Notes("100", 25)
+            val note20 = Notes("20", 25)
+            val note10 = Notes("10", 25)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                viewModel!!.insertNotes(note2000)
+                viewModel!!.insertNotes(note500)
+                viewModel!!.insertNotes(note100)
+                viewModel!!.insertNotes(note20)
+                viewModel!!.insertNotes(note10)
+            }
         }
     }
 
@@ -146,46 +144,26 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
 
             val builder: StringBuilder = StringBuilder()
             builder.append("Transaction History:\n\n")
-            for (i in trasactions.indices) {
-                builder.append("Transaction - $i : ${trasactions[i].amount}\n")
+            for (i in 0 until trasactions.size) {
+                builder.append("${i}  Transaction  : ${trasactions[i].amount}\n")
                 binding.txtTrasnsactionHistory.text = builder.toString()
             }
         }
     }
 
-    fun showWithdrawAmountDetail(amount: Int, updateNotes: Boolean = false) {
+
+    private fun showWithdrawAmountDetail(amount: Int, updateNotes: Boolean = false) {
         val amg = calculationForAvailableNotes(amount, updateNotes)
         val builder: StringBuilder = StringBuilder()
-        builder.append("Withdraw amount detail : $amount \n\n")
+        builder.append("Withdraw Amount Details \n\n")
+
         for ((index, value) in amg.withIndex()) {
             if (value.numberOfNotes != 0) {
                 val t = value.numberOfNotes * value.note.toInt()
-                builder.append("${value.note} * ${value.numberOfNotes} = $t/-\n")
+                builder.append("${value.note} * ${value.numberOfNotes} = $t/- \n")
             }
         }
-        binding.txtTrasnsactionHistory.text = builder.toString()
-
-    }
-
-
-
-    private fun updateLastTranslation(amount: Int, updateNotes: Boolean = false) {
-        val amg = calculationForAvailableNotes(amount, updateNotes)
-        val builder: java.lang.StringBuilder = StringBuilder()
-        builder.append("Last Transaction : $amount \n\n")
-
-        for ((index, value) in amg.withIndex()) {
-//            val t = value.numberOfNotes * value.note.toInt()
-//            builder.append("${value.note} * ${value.numberOfNotes} = $t \n")
-
-            if (value.numberOfNotes != 0) {
-                val t = value.numberOfNotes * value.note.toInt()
-                builder.append("${value.note} * ${value.numberOfNotes} = $t \n")
-
-            }
-
-
-        }
+        builder.append("\nTotal : $amount \n")
 
         binding.txtTrasnsactionHistory.text = builder.toString()
 
