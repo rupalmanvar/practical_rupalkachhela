@@ -6,7 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.practicaltask_rupalkachhela.model.AddAmount
 
-
 @Dao
 interface ATMDao : WithdrawAmountDao,NotesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
