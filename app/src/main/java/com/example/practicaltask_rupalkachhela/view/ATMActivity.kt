@@ -1,6 +1,7 @@
 package com.example.practicaltask_rupalkachhela.view
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import com.example.practicaltask_rupalkachhela.R
 import com.example.practicaltask_rupalkachhela.base.BaseActivity
@@ -30,7 +31,6 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
 
         totalBalance()
         insertNotes()
-
         setClickEvents()
     }
 
@@ -45,14 +45,33 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
         return balance
     }
 
-    fun setClickEvents() {
+    private fun setClickEvents() {
         binding.btnAdd.setOnClickListener {
-            addAmountToDB()
+            if (amountIsNotEmpty()) {
+                addAmountToDB()
+            }
         }
 
         binding.btnWithdraw.setOnClickListener {
-            withDrawAmount()
+            if (amountIsNotEmpty()) {
+                if (checkValidationForWithdrawAmount()) {
+                    withDrawAmount()
+                }
+            }
         }
+
+        binding.btnTransactionHistory.setOnClickListener {
+            getTransactionHistory()
+
+        }
+    }
+
+    fun amountIsNotEmpty(): Boolean {
+        if (viewModel!!.amount.isNullOrBlank()) {
+            Toast.makeText(this@ATMActivity, "Enter amount", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        return true
     }
 
     private fun addAmountToDB() {
@@ -60,6 +79,7 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
             viewModel!!.addAmount(AddAmount(amount = viewModel!!.amount))
             withContext(Dispatchers.Main) {
                 totalBalance()
+                binding.inputAmount.editText?.text?.clear()
             }
         }
     }
@@ -69,8 +89,31 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
             viewModel!!.insertWithDrawAmount(WithdrawAmount(amount = viewModel!!.amount))
             withContext(Dispatchers.Main) {
                 totalBalance()
+                showWithdrawAmountDetail(viewModel!!.amount.toInt(), true)
+                binding.inputAmount.editText?.text?.clear()
             }
         }
+    }
+
+
+    fun checkValidationForWithdrawAmount(): Boolean {
+        val addTotal = viewModel!!.getTotalBalance()
+        val withdrawTotal = viewModel!!.getTotalWithdrawAmount()
+
+        val totalBalance = addTotal - withdrawTotal
+
+        if (!viewModel!!.amount.isNullOrBlank()) {
+            if (viewModel!!.amount.toInt() > totalBalance) {
+                Toast.makeText(
+                    this@ATMActivity,
+                    "Insufficient Balance",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return false
+            }
+        }
+
+        return true
     }
 
     private fun insertNotes() {
@@ -89,4 +132,69 @@ class ATMActivity : BaseActivity<ActivityAtmactivityBinding, ATMViewModel>() {
             viewModel!!.insertNotes(note10)
         }
     }
+
+
+    private fun getTransactionHistory() {
+        var trasactions: List<WithdrawAmount> = ArrayList()
+        if (viewModel!!.getTransactionList().isNotEmpty()) {
+            trasactions = viewModel!!.getTransactionList()
+
+            val builder: StringBuilder = StringBuilder()
+            builder.append("Transaction History:\n\n")
+            for (i in trasactions.indices) {
+                builder.append("Transaction - $i : ${trasactions[i].amount}\n")
+                binding.txtTrasnsactionHistory.text = builder.toString()
+            }
+        }
+    }
+
+    fun showWithdrawAmountDetail(amount: Int, updateNotes: Boolean = false) {
+        val amg = calculationForAvailableNotes(amount, updateNotes)
+        val builder: java.lang.StringBuilder = StringBuilder()
+        builder.append("Withdraw amount detail : $amount \n\n")
+        for ((index, value) in amg.withIndex()) {
+            if (value.numberOfNotes != 0) {
+                val t = value.numberOfNotes * value.note.toInt()
+                builder.append("${value.note} * ${value.numberOfNotes} = $t/-\n")
+            }
+        }
+        binding.txtTrasnsactionHistory.text = builder.toString()
+
+    }
+
+
+    private fun calculationForAvailableNotes(
+        amount: Int, updateNotes: Boolean = false
+    ): ArrayList<Notes> {
+
+        val notes = ArrayList<Notes>()
+        val notesList = viewModel!!.getAllNotes()
+        val resultsList = ArrayList<Notes>()
+        var total = amount
+
+        val it = notesList.filter {
+            it.numberOfNotes != 0
+        }
+        for ((index, value) in it.withIndex()!!) {
+            val note = Math.floor((total / value.note.toInt()).toDouble()).toInt()
+            if (note <= value.numberOfNotes) {
+                notes.add(Notes(value.note, note))
+                if (updateNotes) {
+                    val it = value.numberOfNotes - note
+                    viewModel!!.updateNotes(it, value.note)
+
+                }
+            }
+            total = amount % value.note.toInt()
+        }
+        total = amount
+        for ((index, value) in notes.withIndex()) {
+            val note = Math.floor((total / value.note.toInt()).toDouble()).toInt()
+            resultsList.add(Notes(value.note, note))
+            total = amount % value.note.toInt()
+        }
+        return resultsList
+    }
+
+
 }

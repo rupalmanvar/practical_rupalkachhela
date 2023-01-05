@@ -12,6 +12,9 @@ interface NotesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertNotes(notes: Notes)
 
+    @Query("SELECT * FROM notes ORDER BY id ASC")
+    fun getAllNotes(): List<Notes>
 
-
+    @Query("UPDATE notes SET number_of_notes=:numberOfNotes WHERE notes=:notes")
+    fun updateNotes(numberOfNotes: Int, notes: String)
 }

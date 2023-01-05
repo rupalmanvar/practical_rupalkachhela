@@ -32,5 +32,17 @@ class ATMViewModel @Inject constructor(private val atmDao: ATMDao): ViewModel() 
         atmDao.insertNotes(notes)
     }
 
+    fun getAllNotes(): List<Notes> {
+        return atmDao.getAllNotes()
+    }
+
+    fun updateNotes(numberOfNotes: Int, notes: String) {
+        atmDao.updateNotes(numberOfNotes,notes)
+    }
+
+    fun getTransactionList(): List<WithdrawAmount> {
+        return atmDao.getTransactionList()
+    }
+
 
 }
